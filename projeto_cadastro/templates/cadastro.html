@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro de Usuário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Ajuste rápido para alinhar os inputs e os olhinhos */
+        .input-senha-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-senha-container input {
+            flex: 1;
+            padding-right: 30px; /* espaço pro olhinho */
+        }
+        .toggle-olhinho {
+            position: absolute;
+            right: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 18px;
+            color: #666;
+        }
+        .toggle-olhinho:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cadastro de Usuário</h2>
+        <form id="cadastroForm">
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" required>
+
+            <label for="senha">Senha:</label>
+            <div class="input-senha-container">
+                <input type="password" id="senha" required>
+                <span class="toggle-olhinho" data-target="senha" title="Mostrar/Esconder senha">👁️</span>
+            </div>
+
+            <label for="confirmarSenha">Confirmar Senha:</label>
+            <div class="input-senha-container">
+                <input type="password" id="confirmarSenha" required>
+                <span class="toggle-olhinho" data-target="confirmarSenha" title="Mostrar/Esconder senha">👁️</span>
+            </div>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+        <p id="mensagem"></p>
+    </div>
+
+    <script>
+        // Função que alterna o tipo do input entre 'password' e 'text'
+        function toggleSenha(event) {
+            const targetId = event.target.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (input.type === "password") {
+                input.type = "text";
+                event.target.textContent = "🙈"; // muda ícone pra indicar que está visível
+            } else {
+                input.type = "password";
+                event.target.textContent = "👁️";
+            }
+        }
+
+        // Adiciona evento de clique em todos os olhinhos
+        document.querySelectorAll('.toggle-olhinho').forEach(el => {
+            el.addEventListener('click', toggleSenha);
+        });
+
+        // Seu código já existente do form
+        document.getElementById("cadastroForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const senha = document.getElementById("senha").value;
+            const confirmarSenha = document.getElementById("confirmarSenha").value;
+
+            fetch("/cadastrar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    senha: senha,
+                    confirmar_senha: confirmarSenha
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const mensagem = document.getElementById("mensagem");
+                mensagem.textContent = data.mensagem;
+                mensagem.style.color = (data.status === 'sucesso') ? "green" : "red";
+
+                if (data.status === 'sucesso') {
+                    document.getElementById("cadastroForm").reset();
+                }
+            })
+            .catch(error => {
+                console.error("Erro:", error);
+            });
+        });
+    </script>
+</body>
+</html>
